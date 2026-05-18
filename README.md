@@ -90,6 +90,7 @@ The project is deployed using:
 - Firebase for backend infrastructure
 
 👨‍💻 Author
+
 Developed by Thiago Yanagimori.
 
 🌍 Live Website
