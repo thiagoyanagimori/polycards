@@ -1,0 +1,61 @@
+// firestore.rules
+// ─────────────────────────────────────────────────────────────────
+//  Regras de segurança do Firestore.
+//
+//  Deploy:
+//    firebase deploy --only firestore:rules
+//
+//  Princípios:
+//    1. Usuário só lê/escreve o próprio documento
+//    2. O campo "premium" é READONLY para clientes — qualquer write que
+//       inclua "premium" é rejeitado pela regra hasOnly()
+//    3. Apenas o Admin SDK (Cloud Functions) pode escrever "premium"
+//       porque ele bypassa as Security Rules completamente
+// ─────────────────────────────────────────────────────────────────
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── users/{uid} ───────────────────────────────────────────────
+    match /users/{uid} {
+
+      // Leitura: apenas o próprio usuário
+      allow read: if request.auth != null
+                  && request.auth.uid == uid;
+
+      // Escrita: apenas o próprio usuário, e sem tocar em campos protegidos.
+      // hasOnly() garante que o payload só contenha os campos listados.
+      // Se o cliente tentar incluir "premium", a regra rejeita.
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.data.keys().hasOnly([
+                        'email', 'displayName', 'photoURL',
+                        'lastSeenAt', 'createdAt'
+                      ]);
+
+      // ── progress/{level} ─────────────────────────────────────────
+      match /progress/{level} {
+        allow read:  if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null
+                     && request.auth.uid == uid
+                     && request.resource.data.keys().hasOnly([
+                          'completed', 'score', 'knew',
+                          'missed', 'total', 'updatedAt'
+                        ]);
+      }
+
+      // ── settings/preferences ─────────────────────────────────────
+      match /settings/{doc} {
+        allow read:  if request.auth != null && request.auth.uid == uid;
+        allow write: if request.auth != null
+                     && request.auth.uid == uid
+                     && request.resource.data.keys().hasOnly([
+                          'muted', 'ttsEnabled', 'updatedAt'
+                        ]);
+      }
+    }
+
+    // Tudo que não for listado acima é negado por padrão
+  }
+}

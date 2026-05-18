@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>PolyCards — Learn French & English Vocabulary</title>
+    <meta name="description" content="Master French and English vocabulary with PolyCards. 1500 words across 30 levels with smart flashcards." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="PolyCards" />
+    <meta property="og:description" content="Master French and English vocabulary with PolyCards." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+
+      <!-- ===== LANDING SCREEN ===== -->
+      <div id="screen-landing" class="screen active">
+        <div class="blob-bg">
+          <div class="blob blob-1"></div>
+          <div class="blob blob-2"></div>
+          <div class="blob blob-3"></div>
+        </div>
+        <div class="landing-inner">
+          <div class="landing-badge">
+            <img class="flag-sm" src="https://flagcdn.com/w40/fr.png" alt="France" />
+            <span>French · English</span>
+            <img class="flag-sm" src="https://flagcdn.com/w40/gb.png" alt="United Kingdom" />
+          </div>
+          <h1 class="landing-title">Poly<span class="gradient-text">Cards</span></h1>
+          <p class="landing-subtitle">Master vocabulary the smart way.<br/>1,500 words across 30 progressive levels.</p>
+          <div class="landing-stats">
+            <div class="stat-pill">
+              <span class="stat-num">1,500</span>
+              <span class="stat-lbl">Words</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-num">30</span>
+              <span class="stat-lbl">Levels</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-num">6</span>
+              <span class="stat-lbl">Free Levels</span>
+            </div>
+          </div>
+          <button id="btn-start" class="btn btn-cta">Start Learning</button>
+
+          <div class="auth-row">
+            <button id="btn-login" class="btn btn-secondary auth-btn" style="display:none">
+              <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#4285F4" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#34A853" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+              Entrar com Google
+            </button>
+            <span id="auth-user-info" class="auth-user-info" style="display:none"></span>
+            <button id="btn-logout" class="btn btn-ghost auth-btn" style="display:none">Sair</button>
+          </div>
+
+          <p class="landing-note">Sem conta → progresso salvo localmente · Com conta → sincronizado na nuvem</p>
+        </div>
+      </div>
+
+      <!-- ===== DIRECTION SELECTOR SCREEN ===== -->
+      <div id="screen-direction" class="screen">
+        <header class="app-header">
+          <button class="btn-back" id="back-from-direction">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Back
+          </button>
+          <h2 class="header-title">Study Mode</h2>
+          <div style="width:72px"></div>
+        </header>
+        <div class="direction-body">
+          <p class="section-subtitle">How do you want to study today?</p>
+          <div class="direction-grid">
+            <button class="dir-card" id="dir-fr-en">
+              <div class="dir-flags">
+                <img class="flag-img" src="https://flagcdn.com/w80/fr.png" alt="France" />
+                <span class="dir-arrow">→</span>
+                <img class="flag-img" src="https://flagcdn.com/w80/gb.png" alt="United Kingdom" />
+              </div>
+              <div class="dir-label">French → English</div>
+              <div class="dir-desc">See a French word, recall its English meaning</div>
+            </button>
+            <button class="dir-card" id="dir-en-fr">
+              <div class="dir-flags">
+                <img class="flag-img" src="https://flagcdn.com/w80/gb.png" alt="United Kingdom" />
+                <span class="dir-arrow">→</span>
+                <img class="flag-img" src="https://flagcdn.com/w80/fr.png" alt="France" />
+              </div>
+              <div class="dir-label">English → French</div>
+              <div class="dir-desc">See an English word, recall its French meaning</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== LEVELS SCREEN ===== -->
+      <div id="screen-levels" class="screen">
+        <header class="app-header">
+          <button class="btn-back" id="back-from-levels">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Back
+          </button>
+          <h2 class="header-title">Levels</h2>
+          <button class="btn-icon-text" id="btn-reset-progress" title="Reset all progress">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Reset
+          </button>
+        </header>
+        <div class="mode-badge-row">
+          <div class="mode-badge" id="current-mode-badge"></div>
+        </div>
+        <div class="levels-grid" id="levels-grid"></div>
+      </div>
+
+      <!-- ===== FLASHCARD SCREEN ===== -->
+      <div id="screen-flashcard" class="screen">
+        <header class="app-header">
+          <button class="btn-back" id="back-from-flashcard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Exit
+          </button>
+          <div class="level-badge" id="flashcard-level-badge">Level 1</div>
+          <div class="score-badge">
+            <span class="score-knew" id="count-correct">0</span>
+            <span class="score-sep">/</span>
+            <span class="score-total" id="count-total">50</span>
+          </div>
+        </header>
+
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-bar" style="width:0%"></div>
+        </div>
+
+        <div class="card-meta-row">
+          <div class="meta-knew"><span id="cnt-knew">0</span> knew it</div>
+          <div class="meta-index" id="card-index">1 / 50</div>
+          <div class="meta-missed"><span id="cnt-missed">0</span> missed</div>
+        </div>
+
+        <div class="card-stage">
+          <div class="flashcard" id="flashcard">
+            <div class="card-inner" id="card-inner">
+              <div class="card-face card-front">
+                <div class="card-lang" id="front-lang">French</div>
+                <div class="card-word" id="front-word">bonjour</div>
+                <div class="card-category-tag" id="front-category"></div>
+                <div class="card-tap-hint">Tap to reveal</div>
+              </div>
+              <div class="card-face card-back">
+                <div class="card-lang" id="back-lang">English</div>
+                <div class="card-word" id="back-word">hello</div>
+                <div class="card-category-tag" id="back-category"></div>
+                <div class="card-difficulty-tag" id="back-difficulty"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row hidden" id="action-row">
+          <button class="btn btn-missed" id="btn-missed">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            Missed
+          </button>
+          <button class="btn btn-next" id="btn-next">Next →</button>
+          <button class="btn btn-knew" id="btn-knew">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M20 6 9 17l-5-5"/></svg>
+            Knew it
+          </button>
+        </div>
+        <p class="flip-hint" id="flip-hint">Click the card to flip it</p>
+      </div>
+
+      <!-- ===== END SCREEN ===== -->
+      <div id="screen-end" class="screen">
+        <div class="end-inner">
+          <div class="end-trophy" id="end-trophy">🏆</div>
+          <h2 class="end-title" id="end-title">Level Complete!</h2>
+          <div class="end-score-ring">
+            <svg class="score-ring-svg" viewBox="0 0 120 120">
+              <circle class="ring-track" cx="60" cy="60" r="50" />
+              <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="50" />
+            </svg>
+            <div class="ring-label">
+              <span class="ring-pct" id="end-score-pct">0%</span>
+              <span class="ring-sub">score</span>
+            </div>
+          </div>
+          <div class="end-counters">
+            <div class="end-counter end-counter-knew">
+              <span class="ec-num" id="end-knew">0</span>
+              <span class="ec-lbl">Knew it</span>
+            </div>
+            <div class="end-counter end-counter-missed">
+              <span class="ec-num" id="end-missed">0</span>
+              <span class="ec-lbl">Missed</span>
+            </div>
+          </div>
+          <p class="end-message" id="end-message">Great job finishing this level!</p>
+          <div class="end-actions">
+            <button class="btn btn-secondary" id="btn-retry">↺ Retry Level</button>
+            <button class="btn btn-cta" id="btn-next-level">Next Level →</button>
+          </div>
+          <button class="btn btn-ghost" id="btn-back-levels">← All Levels</button>
+        </div>
+      </div>
+
+      <!-- ===== PREMIUM MODAL ===== -->
+      <div id="modal-premium" class="modal-overlay" aria-hidden="true" style="display:none">
+        <div class="modal-box" role="dialog" aria-modal="true">
+          <button class="modal-close" id="modal-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+          <div class="modal-icon">🔒</div>
+          <h3 class="modal-title">Premium Level</h3>
+          <p class="modal-desc">Unlock all 30 levels and the full 1,500-word vocabulary library.</p>
+          <ul class="modal-features">
+            <li><span class="feat-check">✓</span> 24 additional levels (7–30)</li>
+            <li><span class="feat-check">✓</span> 1,200 more vocabulary words</li>
+            <li><span class="feat-check">✓</span> Advanced difficulty tiers</li>
+            <li><span class="feat-check">✓</span> Themed vocabulary categories</li>
+          </ul>
+          <button class="btn btn-cta btn-full" id="btn-upgrade">Upgrade to Premium</button>
+          <div class="modal-demo-row">
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== FLOATING CONTROLS (global) ===== -->
+      <button id="btn-tts"  class="btn-mute-float" style="right:68px" title="Enable auto-pronounce" aria-label="Enable auto-pronounce">🗣️</button>
+      <button id="btn-mute" class="btn-mute-float" title="Mute sounds"          aria-label="Toggle sound">🔊</button>
+
+    </div>
+
+    <!-- Auth loading overlay — hidden after onAuthStateChanged fires -->
+    <div id="auth-loading" style="
+      display:none;
+      position:fixed;inset:0;
+      background:rgba(13,15,20,0.7);
+      z-index:999;
+      align-items:center;justify-content:center;
+      font-size:14px;color:#8a90a0;
+    ">Verificando sessão…</div>
+
+    <script type="module" src="/src/data/words.js"></script>
+    <script type="module" src="/src/script.js"></script>
+  </body>
+</html>
