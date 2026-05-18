@@ -81,3 +81,17 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 VITE_FUNCTIONS_BASE_URL=your_functions_url
 ```
+🚀 Deployment
+
+The project is deployed using:
+
+- GitHub for version control
+- Vercel for frontend hosting
+- Firebase for backend infrastructure
+
+👨‍💻 Author
+Developed by Thiago Yanagimori.
+
+🌍 Live Website
+
+👉 https://playpolycards.vercel.app/
