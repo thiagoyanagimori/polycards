@@ -822,13 +822,6 @@ el('btn-upgrade').addEventListener('click', async () => {
     btn.textContent = 'Upgrade to Premium';
   }
 });
-el('btn-demo-premium').addEventListener('click', () => {
-  // Demo unlock — local only, for testing UI. Does NOT write to Firestore.
-  state.premium = true;
-  closePremiumModal();
-  renderLevels();
-  showToast('🎉 Premium demo ativo! (apenas nesta sessão)');
-});
 
 // Mute + TTS toggle
 el('btn-mute').addEventListener('click', toggleMute);
