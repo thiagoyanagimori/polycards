@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"d:\\\\polycards\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(mkdir -p \"d:/polycards/artifacts/polycards/src/data/decks\")",
+      "Bash(node convert-deck.cjs)",
+      "Bash(node -e \"const d=require\\('./src/data/decks/french.json'\\); console.log\\('First:', JSON.stringify\\(d[0]\\)\\); console.log\\('Last:', JSON.stringify\\(d[d.length-1]\\)\\);\")",
+      "Bash(timeout 12 pnpm dev)",
+      "Bash(node -e ' *)"
+    ],
+    "additionalDirectories": [
+      "d:\\polycards\\artifacts\\polycards\\src\\data"
+    ]
+  }
+}

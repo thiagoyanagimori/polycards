@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>PolyCards — Learn French & English Vocabulary</title>
-    <meta name="description" content="Master French and English vocabulary with PolyCards. 1500 words across 30 levels with smart flashcards." />
+    <title>PolyCards — Learn Languages with Flashcards</title>
+    <meta name="description" content="Master vocabulary in French, Spanish, German and more with PolyCards. 1500 words across 30 levels with smart flashcards." />
     <meta name="robots" content="index, follow" />
     <meta property="og:title" content="PolyCards" />
     <meta property="og:description" content="Master French and English vocabulary with PolyCards." />
@@ -27,9 +27,8 @@
         </div>
         <div class="landing-inner">
           <div class="landing-badge">
-            <img class="flag-sm" src="https://flagcdn.com/w40/fr.png" alt="France" />
-            <span>French · English</span>
-            <img class="flag-sm" src="https://flagcdn.com/w40/gb.png" alt="United Kingdom" />
+            <span>🌍</span>
+            <span>Multi-Language Flashcards</span>
           </div>
           <h1 class="landing-title">Poly<span class="gradient-text">Cards</span></h1>
           <p class="landing-subtitle">Master vocabulary the smart way.<br/>1,500 words across 30 progressive levels.</p>
@@ -67,6 +66,22 @@
         </div>
       </div>
 
+      <!-- ===== LANGUAGE SELECTOR SCREEN ===== -->
+      <div id="screen-language" class="screen">
+        <header class="app-header">
+          <button class="btn-back" id="back-from-language">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+            Back
+          </button>
+          <h2 class="header-title">Choose Language</h2>
+          <div style="width:72px"></div>
+        </header>
+        <div class="language-body">
+          <p class="section-subtitle">What language do you want to learn?</p>
+          <div class="language-grid" id="language-grid"></div>
+        </div>
+      </div>
+
       <!-- ===== DIRECTION SELECTOR SCREEN ===== -->
       <div id="screen-direction" class="screen">
         <header class="app-header">
@@ -80,23 +95,15 @@
         <div class="direction-body">
           <p class="section-subtitle">How do you want to study today?</p>
           <div class="direction-grid">
-            <button class="dir-card" id="dir-fr-en">
-              <div class="dir-flags">
-                <img class="flag-img" src="https://flagcdn.com/w80/fr.png" alt="France" />
-                <span class="dir-arrow">→</span>
-                <img class="flag-img" src="https://flagcdn.com/w80/gb.png" alt="United Kingdom" />
-              </div>
-              <div class="dir-label">French → English</div>
-              <div class="dir-desc">See a French word, recall its English meaning</div>
+            <button class="dir-card" id="dir-target-en">
+              <div class="dir-flags"></div>
+              <div class="dir-label"></div>
+              <div class="dir-desc"></div>
             </button>
-            <button class="dir-card" id="dir-en-fr">
-              <div class="dir-flags">
-                <img class="flag-img" src="https://flagcdn.com/w80/gb.png" alt="United Kingdom" />
-                <span class="dir-arrow">→</span>
-                <img class="flag-img" src="https://flagcdn.com/w80/fr.png" alt="France" />
-              </div>
-              <div class="dir-label">English → French</div>
-              <div class="dir-desc">See an English word, recall its French meaning</div>
+            <button class="dir-card" id="dir-en-target">
+              <div class="dir-flags"></div>
+              <div class="dir-label"></div>
+              <div class="dir-desc"></div>
             </button>
           </div>
         </div>
@@ -250,7 +257,6 @@
       font-size:14px;color:#8a90a0;
     ">Verificando sessão…</div>
 
-    <script type="module" src="/src/data/words.js"></script>
     <script type="module" src="/src/script.js"></script>
   </body>
 </html>

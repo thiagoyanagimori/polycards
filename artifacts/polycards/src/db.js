@@ -121,12 +121,13 @@ export function watchUserProfile(uid, callback) {
 // ── Progress ──────────────────────────────────────────────────────
 
 /**
- * Carrega todo o progresso do usuário do Firestore.
+ * Carrega todo o progresso do usuário do Firestore para um idioma específico.
  * Retorna objeto { [level]: data } ou null se falhar.
+ * A subcoleção é nomeada `progress_${langId}` (ex: progress_french).
  */
-export async function loadProgressFromCloud(uid) {
+export async function loadProgressFromCloud(uid, langId) {
   return safeRun(async () => {
-    const snap = await getDocs(collection(db, 'users', uid, 'progress'));
+    const snap = await getDocs(collection(db, 'users', uid, `progress_${langId}`));
     if (snap.empty) return null;
     const result = {};
     snap.forEach(d => { result[d.id] = d.data(); });
@@ -139,10 +140,10 @@ export async function loadProgressFromCloud(uid) {
  * Fire-and-forget — não bloqueia a UI.
  * O localStorage já foi atualizado antes desta chamada.
  */
-export function saveProgressToCloud(uid, level, data) {
+export function saveProgressToCloud(uid, langId, level, data) {
   safeRun(() =>
     setDoc(
-      doc(db, 'users', uid, 'progress', String(level)),
+      doc(db, 'users', uid, `progress_${langId}`, String(level)),
       { ...data, updatedAt: serverTimestamp() },
       { merge: true }
     )

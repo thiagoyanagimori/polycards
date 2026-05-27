@@ -1,22 +1,16 @@
 // PolyCards — Main Application Logic
-// words.js is loaded before this script in index.html (both type="module",
-// executed in source order per spec), so WORDS is always available here.
 
-const WORDS = window.__POLYCARDS_WORDS__;
+import { LANGUAGES } from './data/languages.js';
 
 // URL base das Cloud Functions -- preencha no .env apos o deploy.
-// Ex: https://us-central1-SEU_PROJETO.cloudfunctions.net
 const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL ?? '';
 
 // Firebase auth + db — imported as side-effect-free modules.
-// Both degrade gracefully if Firebase isn't configured yet.
-import('./auth.js').catch(() => {});  // pre-warm module
+import('./auth.js').catch(() => {});
 import('./db.js').catch(() => {});
 
-// Lazy references — set by initAuth() after the module loads
-let _auth = null;  // { loginWithGoogle, logout, getCurrentUser, onUserChanged }
-let _db   = null;  // { ensureUserDoc, getUserProfile, loadProgressFromCloud,
-                   //   saveProgressToCloud, saveSettingToCloud }
+let _auth = null;
+let _db   = null;
 
 async function loadFirebaseModules() {
   try {
@@ -33,13 +27,10 @@ async function loadFirebaseModules() {
 //  CONFIGURATION
 // ==========================================
 
-const isPremiumUser = false; // Set true to unlock all levels
-const FREE_LEVELS   = 6;
-const TOTAL_LEVELS  = 30;
+const isPremiumUser   = false;
+const FREE_LEVELS     = 6;
+const TOTAL_LEVELS    = 30;
 const CARDS_PER_LEVEL = 50;
-
-// Safety valve: if a CSS transitionend never fires (e.g. user navigates
-// away mid-animation), unlock interaction after this many ms.
 const TRANSITION_TIMEOUT_MS = 800;
 
 // ==========================================
@@ -47,7 +38,9 @@ const TRANSITION_TIMEOUT_MS = 800;
 // ==========================================
 
 let state = {
-  direction:    'fr-en',  // 'fr-en' | 'en-fr'
+  language:     null,   // one entry from LANGUAGES, set after language selection
+  deck:         [],     // loaded deck array for the current language
+  direction:    'target-en',  // 'target-en' | 'en-target'
   currentLevel: null,
   cards:        [],
   cardIndex:    0,
@@ -56,54 +49,45 @@ let state = {
   flipped:      false,
   transitioning: false,
   premium:      isPremiumUser,
-  user:         null,   // Firebase User | null
-  authReady:    false,  // true after onAuthStateChanged fires once
+  user:         null,
+  authReady:    false,
 };
 
 // ==========================================
 //  TTS ENGINE (Web Speech API)
 // ==========================================
 
-// Auto-pronounce preference — persisted independently of the sound mute toggle.
-let ttsEnabled = localStorage.getItem('polycards_tts') !== 'false'; // default ON
+let ttsEnabled = localStorage.getItem('polycards_tts') !== 'false';
 
-/** Returns true if the browser supports speech synthesis. */
 const hasTTS = () => 'speechSynthesis' in window;
 
-/**
- * Speak `text` in `lang` (BCP-47 tag, e.g. 'fr-FR' or 'en-US').
- * Cancels any in-progress utterance first so voices never overlap.
- * Silent no-op when TTS is disabled or unsupported.
- */
 function speak(text, lang) {
   if (!ttsEnabled || !hasTTS() || isMuted) return;
   window.speechSynthesis.cancel();
   const utt  = new SpeechSynthesisUtterance(text);
   utt.lang   = lang;
-  utt.rate   = 0.9;   // slightly slower than default for clarity
+  utt.rate   = 0.9;
   utt.volume = 1;
   window.speechSynthesis.speak(utt);
 }
 
-/** Speak the front face of the current card. */
 function speakFront() {
   const card = state.cards[state.cardIndex];
-  if (!card) return;
-  if (state.direction === 'fr-en') {
-    speak(card.french,  'fr-FR');
+  if (!card || !state.language) return;
+  if (state.direction === 'target-en') {
+    speak(card.target, state.language.ttsCode);
   } else {
     speak(card.english, 'en-US');
   }
 }
 
-/** Speak the back face of the current card. */
 function speakBack() {
   const card = state.cards[state.cardIndex];
-  if (!card) return;
-  if (state.direction === 'fr-en') {
+  if (!card || !state.language) return;
+  if (state.direction === 'target-en') {
     speak(card.english, 'en-US');
   } else {
-    speak(card.french,  'fr-FR');
+    speak(card.target, state.language.ttsCode);
   }
 }
 
@@ -118,7 +102,7 @@ function updateTtsBtn() {
   const btn = document.getElementById('btn-tts');
   if (!btn) return;
   if (!hasTTS()) { btn.style.display = 'none'; return; }
-  btn.textContent = ttsEnabled ? '\u{1F5E3}\uFE0F' : '\u{1F515}';
+  btn.textContent = ttsEnabled ? '\u{1F5E3}️' : '\u{1F515}';
   btn.title       = ttsEnabled ? 'Disable auto-pronounce' : 'Enable auto-pronounce';
   btn.setAttribute('aria-label', btn.title);
   btn.style.opacity = ttsEnabled ? '1' : '0.45';
@@ -137,7 +121,6 @@ function shuffle(arr) {
   return a;
 }
 
-/** Query a required DOM element; throws a clear error if missing. */
 function el(id) {
   const node = document.getElementById(id);
   if (!node) throw new Error(`Missing element #${id}`);
@@ -148,14 +131,13 @@ function el(id) {
 //  FLAG HELPER
 // ==========================================
 
-const FLAG_URLS = {
-  fr: 'https://flagcdn.com/w40/fr.png',
-  gb: 'https://flagcdn.com/w40/gb.png',
-};
+const FLAG_BASE = 'https://flagcdn.com';
 
 function flagHTML(code, size = 'sm') {
-  const alt = code === 'fr' ? 'French' : 'English';
-  return `<img src="${FLAG_URLS[code]}" alt="${alt}" class="flag-${size}" />`;
+  const dim = size === 'md' ? 'w80' : 'w40';
+  const labels = { fr:'French', gb:'English', es:'Spanish', de:'German', it:'Italian', jp:'Japanese', br:'Portuguese' };
+  const alt = labels[code] ?? code.toUpperCase();
+  return `<img src="${FLAG_BASE}/${dim}/${code}.png" alt="${alt}" class="flag-${size}" />`;
 }
 
 // ==========================================
@@ -223,53 +205,62 @@ function updateMuteBtn() {
 }
 
 // ==========================================
-//  PROGRESS (localStorage)
+//  PROGRESS (localStorage, namespaced by language)
 // ==========================================
 
-// ── localStorage (always) ────────────────────────────────────────
+function progressKey(langId) {
+  return `polycards_progress_${langId}`;
+}
 
-function loadProgress() {
-  try { return JSON.parse(localStorage.getItem('polycards_progress') || '{}'); }
+/**
+ * One-time migration: copies old flat key → new language-scoped key for French.
+ * Safe to run multiple times (no-op after first run).
+ */
+function migrateOldProgress() {
+  const old = localStorage.getItem('polycards_progress');
+  if (!old) return;
+  const newKey = progressKey('french');
+  if (!localStorage.getItem(newKey)) {
+    localStorage.setItem(newKey, old);
+  }
+  localStorage.removeItem('polycards_progress');
+}
+
+function loadProgress(langId) {
+  try { return JSON.parse(localStorage.getItem(progressKey(langId)) || '{}'); }
   catch { return {}; }
 }
 
-function _writeLocalProgress(level, data) {
-  const progress = loadProgress();
+function _writeLocalProgress(langId, level, data) {
+  const progress = loadProgress(langId);
   progress[level] = { ...progress[level], ...data };
-  localStorage.setItem('polycards_progress', JSON.stringify(progress));
+  localStorage.setItem(progressKey(langId), JSON.stringify(progress));
 }
 
-function resetProgress() {
-  localStorage.removeItem('polycards_progress');
-  // Cloud reset is intentionally not automatic — data is the user's property.
+function resetProgress(langId) {
+  localStorage.removeItem(progressKey(langId));
 }
 
 function isLevelCompleted(level) {
-  return !!(loadProgress()[level]?.completed);
+  if (!state.language) return false;
+  return !!(loadProgress(state.language.id)[level]?.completed);
 }
 
-/**
- * saveProgress — dual-write strategy:
- *   1. Write localStorage immediately (no await, no block)
- *   2. Fire-and-forget to Firestore if user is logged in
- */
 function saveProgress(level, data) {
-  _writeLocalProgress(level, data);
+  const langId = state.language.id;
+  _writeLocalProgress(langId, level, data);
   if (state.user && _db) {
-    _db.saveProgressToCloud(state.user.uid, level, data);
+    _db.saveProgressToCloud(state.user.uid, langId, level, data);
   }
 }
 
-/**
- * syncCloudProgressToLocal — called once after login.
- * Merges cloud progress into localStorage without overwriting newer local data.
- */
 async function syncCloudProgressToLocal() {
-  if (!state.user || !_db) return;
-  const cloud = await _db.loadProgressFromCloud(state.user.uid);
+  if (!state.user || !_db || !state.language) return;
+  const langId = state.language.id;
+  const cloud  = await _db.loadProgressFromCloud(state.user.uid, langId);
   if (!cloud) return;
 
-  const local = loadProgress();
+  const local = loadProgress(langId);
   let merged  = false;
   for (const [level, data] of Object.entries(cloud)) {
     if (!local[level]) {
@@ -278,9 +269,18 @@ async function syncCloudProgressToLocal() {
     }
   }
   if (merged) {
-    localStorage.setItem('polycards_progress', JSON.stringify(local));
-    renderLevels(); // reflect newly synced levels in UI
+    localStorage.setItem(progressKey(langId), JSON.stringify(local));
+    renderLevels();
   }
+}
+
+// ==========================================
+//  DECK LOADING (dynamic import per language)
+// ==========================================
+
+async function loadDeck(langId) {
+  const module = await import(`./data/decks/${langId}.json`);
+  return module.default;
 }
 
 // ==========================================
@@ -288,7 +288,7 @@ async function syncCloudProgressToLocal() {
 // ==========================================
 
 function getWordsForLevel(level) {
-  const real = WORDS.filter(w => w.level === level);
+  const real = state.deck.filter(w => w.level === level);
   if (real.length >= CARDS_PER_LEVEL) return real.slice(0, CARDS_PER_LEVEL);
 
   const filled = [...real];
@@ -298,7 +298,7 @@ function getWordsForLevel(level) {
     const idx = filled.length;
     filled.push({
       id:         level * 100 + idx,
-      french:     `[mot ${idx + 1} — niveau ${level}]`,
+      target:     `[word ${idx + 1} — level ${level}]`,
       english:    `[word ${idx + 1} — level ${level}]`,
       level,
       category:   categories[idx % categories.length],
@@ -318,6 +318,75 @@ function showScreen(id) {
 }
 
 // ==========================================
+//  LANGUAGE SCREEN
+// ==========================================
+
+function renderLanguageScreen() {
+  const grid = el('language-grid');
+  grid.innerHTML = '';
+
+  for (const lang of LANGUAGES) {
+    const card = document.createElement('button');
+    card.className = 'lang-card' + (lang.available ? '' : ' lang-card--soon');
+    card.disabled  = !lang.available;
+
+    const flagUrl = `${FLAG_BASE}/w80/${lang.flagCode}.png`;
+    card.innerHTML = `
+      <img class="lang-flag" src="${flagUrl}" alt="${lang.label}" />
+      <div class="lang-info">
+        <span class="lang-label">${lang.label}</span>
+        <span class="lang-native">${lang.nativeName}</span>
+      </div>
+      ${lang.available ? '' : '<span class="lang-soon-badge">Coming soon</span>'}
+    `;
+
+    if (lang.available) {
+      card.addEventListener('click', () => selectLanguage(lang));
+    }
+    grid.appendChild(card);
+  }
+}
+
+async function selectLanguage(lang) {
+  const grid = el('language-grid');
+  grid.style.opacity = '0.5';
+  grid.style.pointerEvents = 'none';
+
+  try {
+    state.deck     = await loadDeck(lang.id);
+    state.language = lang;
+    localStorage.setItem('polycards_language', lang.id);
+
+    updateDirectionScreen(lang);
+    showScreen('screen-direction');
+
+    // Sync cloud progress for this language now that it's selected
+    syncCloudProgressToLocal();
+  } catch (err) {
+    console.error('[PolyCards] Failed to load deck:', err);
+    showToast('Failed to load language deck. Please try again.');
+  } finally {
+    grid.style.opacity = '';
+    grid.style.pointerEvents = '';
+  }
+}
+
+function updateDirectionScreen(lang) {
+  const flagUrl = `${FLAG_BASE}/w80/${lang.flagCode}.png`;
+  const gbUrl   = `${FLAG_BASE}/w80/gb.png`;
+
+  el('dir-target-en').querySelector('.dir-flags').innerHTML =
+    `<img class="flag-img" src="${flagUrl}" alt="${lang.label}" /><span class="dir-arrow">→</span><img class="flag-img" src="${gbUrl}" alt="English" />`;
+  el('dir-target-en').querySelector('.dir-label').textContent = `${lang.label} → English`;
+  el('dir-target-en').querySelector('.dir-desc').textContent  = `See a ${lang.label} word, recall its English meaning`;
+
+  el('dir-en-target').querySelector('.dir-flags').innerHTML =
+    `<img class="flag-img" src="${gbUrl}" alt="English" /><span class="dir-arrow">→</span><img class="flag-img" src="${flagUrl}" alt="${lang.label}" />`;
+  el('dir-en-target').querySelector('.dir-label').textContent = `English → ${lang.label}`;
+  el('dir-en-target').querySelector('.dir-desc').textContent  = `See an English word, recall its ${lang.label} meaning`;
+}
+
+// ==========================================
 //  LEVELS SCREEN
 // ==========================================
 
@@ -327,13 +396,17 @@ function goToLevels() {
 }
 
 function renderLevels() {
+  const lang      = state.language;
   const modeBadge = el('current-mode-badge');
-  modeBadge.innerHTML = state.direction === 'fr-en'
-    ? `${flagHTML('fr')} French → English ${flagHTML('gb')}`
-    : `${flagHTML('gb')} English → French ${flagHTML('fr')}`;
+  if (lang) {
+    const fc = lang.flagCode;
+    modeBadge.innerHTML = state.direction === 'target-en'
+      ? `${flagHTML(fc)} ${lang.label} → English ${flagHTML('gb')}`
+      : `${flagHTML('gb')} English → ${lang.label} ${flagHTML(fc)}`;
+  }
 
   const grid = el('levels-grid');
-  grid.innerHTML = '';  // wipes old buttons and their listeners before re-render
+  grid.innerHTML = '';
 
   for (let level = 1; level <= TOTAL_LEVELS; level++) {
     const isLocked  = !state.premium && level > FREE_LEVELS;
@@ -350,8 +423,6 @@ function renderLevels() {
       ? `<span class="level-num">${level}</span><span class="lock-icon">🔒</span>`
       : `<span class="level-num">${level}</span><span class="level-sub">${completed ? '✓' : '50 cards'}</span>`;
 
-    // Listener is created once per button per render — no accumulation risk
-    // because the parent node is wiped before each render call.
     btn.addEventListener('click', () => {
       isLocked ? openPremiumModal() : startLevel(level);
     });
@@ -379,7 +450,6 @@ function startLevel(level) {
   resetFlip();
   updateActionRow(false);
   showScreen('screen-flashcard');
-  // Defer by one frame so the browser finishes painting before TTS fires.
   requestAnimationFrame(speakFront);
 }
 
@@ -401,16 +471,21 @@ function resetFlip() {
 }
 
 function updateCardUI() {
-  const card   = state.cards[state.cardIndex];
-  if (!card) return;
-  const isFrEn = state.direction === 'fr-en';
+  const card = state.cards[state.cardIndex];
+  if (!card || !state.language) return;
+  const lang        = state.language;
+  const isTargetFirst = state.direction === 'target-en';
 
-  el('front-lang').innerHTML      = isFrEn ? `${flagHTML('fr', 'md')} French`  : `${flagHTML('gb', 'md')} English`;
-  el('front-word').textContent    = isFrEn ? card.french  : card.english;
+  el('front-lang').innerHTML      = isTargetFirst
+    ? `${flagHTML(lang.flagCode, 'md')} ${lang.label}`
+    : `${flagHTML('gb', 'md')} English`;
+  el('front-word').textContent    = isTargetFirst ? card.target  : card.english;
   el('front-category').textContent = card.category;
 
-  el('back-lang').innerHTML       = isFrEn ? `${flagHTML('gb', 'md')} English` : `${flagHTML('fr', 'md')} French`;
-  el('back-word').textContent     = isFrEn ? card.english : card.french;
+  el('back-lang').innerHTML       = isTargetFirst
+    ? `${flagHTML('gb', 'md')} English`
+    : `${flagHTML(lang.flagCode, 'md')} ${lang.label}`;
+  el('back-word').textContent     = isTargetFirst ? card.english : card.target;
   el('back-category').textContent = card.category;
 
   const diffEl = el('back-difficulty');
@@ -456,11 +531,6 @@ function handleNext() {
 //  CARD TRANSITION
 // ==========================================
 
-/**
- * Attaches a one-shot transitionend listener filtered to the 'transform'
- * property. A safety timeout prevents a permanent locked state if the CSS
- * transition never completes (element hidden, display:none, etc.).
- */
 function onTransformEnd(element, callback) {
   let fired = false;
   const done = () => {
@@ -479,7 +549,6 @@ function nextCard() {
   const nextIndex = state.cardIndex + 1;
   const inner     = el('card-inner');
 
-  // ── Last card in level ──────────────────────────────────────────────────────
   if (nextIndex >= state.cards.length) {
     if (!state.flipped) { finishLevel(); return; }
 
@@ -498,7 +567,6 @@ function nextCard() {
     return;
   }
 
-  // ── Card not flipped — instant swap ────────────────────────────────────────
   if (!state.flipped) {
     state.cardIndex = nextIndex;
     updateCardUI();
@@ -508,22 +576,18 @@ function nextCard() {
     return;
   }
 
-  // ── Card is flipped — two-phase un-flip ────────────────────────────────────
   state.transitioning = true;
   updateActionRow(false);
 
-  // Phase 1: 180° → 90° (ease-in)
   inner.classList.remove('flipped');
   inner.classList.add('to-edge');
 
   onTransformEnd(inner, () => {
-    // Card is now edge-on and invisible — safe to swap content
     state.flipped   = false;
     state.cardIndex = nextIndex;
     updateCardUI();
     speakFront();
 
-    // Phase 2: 90° → 0° (ease-out)
     inner.classList.remove('to-edge');
 
     onTransformEnd(inner, () => {
@@ -564,7 +628,6 @@ function finishLevel() {
   el('end-missed').textContent    = state.missed;
   el('end-message').textContent   = message;
 
-  // Animate score ring
   const circumference = 2 * Math.PI * 50;
   const ringFill = el('ring-fill');
   const svg      = ringFill.closest('svg');
@@ -659,7 +722,6 @@ function closePremiumModal() {
 //  AUTH UI
 // ==========================================
 
-/** Updates the login/logout button in the landing screen. */
 function updateAuthUI() {
   const btnLogin  = document.getElementById('btn-login');
   const btnLogout = document.getElementById('btn-logout');
@@ -670,7 +732,7 @@ function updateAuthUI() {
     btnLogin.style.display  = 'none';
     btnLogout.style.display = 'inline-flex';
     if (userInfo) {
-      userInfo.textContent  = state.user.displayName || state.user.email;
+      userInfo.textContent   = state.user.displayName || state.user.email;
       userInfo.style.display = 'block';
     }
   } else {
@@ -684,7 +746,6 @@ async function handleLogin() {
   if (!_auth) return showToast('Firebase não configurado ainda.');
   try {
     await _auth.loginWithGoogle();
-    // onUserChanged handles the rest
   } catch (e) {
     if (e.code !== 'auth/popup-closed-by-user') {
       showToast('Erro ao fazer login. Tente novamente.');
@@ -695,29 +756,20 @@ async function handleLogin() {
 async function handleLogout() {
   if (!_auth) return;
   await _auth.logout();
-  // onUserChanged handles state.user = null + UI update
   showToast('Logout realizado.');
 }
 
-/**
- * initAuth — called once at startup.
- * Sets up the auth state listener that drives the whole auth flow.
- */
 async function initAuth() {
   await loadFirebaseModules();
-  if (!_auth) return; // Firebase not configured — offline mode
+  if (!_auth) return;
 
   _auth.onUserChanged(async (user) => {
     state.user      = user;
     state.authReady = true;
 
     if (user) {
-      // 1. Create/update Firestore user doc (fire-and-forget)
       if (_db) _db.ensureUserDoc(user);
 
-      // 2. Watch premium in real time via onSnapshot.
-      //    Fires immediately with current value, then again whenever
-      //    the Stripe webhook writes premium=true -- no reload needed.
       if (_db) {
         if (state._unsubProfile) state._unsubProfile();
         state._unsubProfile = _db.watchUserProfile(user.uid, (profile) => {
@@ -732,10 +784,9 @@ async function initAuth() {
         });
       }
 
-      // 3. Merge cloud progress into localStorage
+      // Only sync if user already selected a language
       await syncCloudProgressToLocal();
     } else {
-      // Logged out -- cancel listener and reset to local-only state
       if (state._unsubProfile) { state._unsubProfile(); state._unsubProfile = null; }
       state.premium = isPremiumUser;
       renderLevels();
@@ -746,21 +797,29 @@ async function initAuth() {
 }
 
 // ==========================================
-//  EVENT LISTENERS  — registered once at module load
+//  EVENT LISTENERS
 // ==========================================
 
 // Landing
-el('btn-start').addEventListener('click', () => showScreen('screen-direction'));
+el('btn-start').addEventListener('click', () => showScreen('screen-language'));
+
+// Language screen
+el('back-from-language').addEventListener('click', () => showScreen('screen-landing'));
 
 // Direction selector
-el('back-from-direction').addEventListener('click', () => showScreen('screen-landing'));
-el('dir-fr-en').addEventListener('click', () => { soundClick(); state.direction = 'fr-en'; goToLevels(); });
-el('dir-en-fr').addEventListener('click', () => { soundClick(); state.direction = 'en-fr'; goToLevels(); });
+el('back-from-direction').addEventListener('click', () => showScreen('screen-language'));
+el('dir-target-en').addEventListener('click', () => { soundClick(); state.direction = 'target-en'; goToLevels(); });
+el('dir-en-target').addEventListener('click', () => { soundClick(); state.direction = 'en-target'; goToLevels(); });
 
 // Levels
 el('back-from-levels').addEventListener('click', () => showScreen('screen-direction'));
 el('btn-reset-progress').addEventListener('click', () => {
-  if (confirm('Reset all progress? This cannot be undone.')) { resetProgress(); renderLevels(); }
+  if (!state.language) return;
+  const langLabel = state.language.label;
+  if (confirm(`Reset all ${langLabel} progress? This cannot be undone.`)) {
+    resetProgress(state.language.id);
+    renderLevels();
+  }
 });
 
 // Flashcard
@@ -846,10 +905,10 @@ document.addEventListener('keydown', (e) => {
 //  INIT
 // ==========================================
 
+migrateOldProgress();
 updateMuteBtn();
 updateTtsBtn();
+renderLanguageScreen();
 showScreen('screen-landing');
 
-// Auth is initialized asynchronously — the app is already usable
-// in offline mode before this resolves.
 initAuth();
