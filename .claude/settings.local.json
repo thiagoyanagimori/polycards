@@ -8,7 +8,27 @@
       "Bash(node convert-deck.cjs)",
       "Bash(node -e \"const d=require\\('./src/data/decks/french.json'\\); console.log\\('First:', JSON.stringify\\(d[0]\\)\\); console.log\\('Last:', JSON.stringify\\(d[d.length-1]\\)\\);\")",
       "Bash(timeout 12 pnpm dev)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(timeout 30 pnpm build)",
+      "Bash(node gen_spanish.js)",
+      "Bash(node gen_spanish.cjs)",
+      "Bash(rm -f gen_spanish.cjs)",
+      "Bash(ls gen_spanish.cjs)",
+      "Bash(timeout 20 pnpm build)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const d=JSON.parse\\(fs.readFileSync\\('d:/polycards/artifacts/polycards/src/data/decks/german.json','utf8'\\)\\); console.log\\('last id:', d[d.length-1].id, '| total:', d.length\\);\")",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('d:/polycards/artifacts/polycards/src/data/decks/german.json','utf8'\\)\\); console.log\\('total:',d.length,'last id:',d[d.length-1].id\\);\")",
+      "Bash(git -C d:\\\\polycards diff --stat HEAD)",
+      "Bash(python -c ' *)",
+      "Bash(python src/data/decks/_gen_italian.py)",
+      "Bash(python artifacts/polycards/src/data/decks/_gen_italian.py)",
+      "Bash(python artifacts/polycards/src/data/decks/_gen_italian_l11_20.py)",
+      "Bash(python artifacts/polycards/src/data/decks/_gen_italian_l21_30.py)",
+      "Bash(python -c \"import os; os.remove\\('artifacts/polycards/src/data/decks/_gen_italian_l21_30.py'\\); print\\('Temp script removed.'\\)\")",
+      "Bash(python artifacts/polycards/src/data/decks/_add_readings.py)",
+      "Bash(python -c \"import os; os.remove\\('artifacts/polycards/src/data/decks/_add_readings.py'\\); print\\('Script removed.'\\)\")",
+      "Bash(python artifacts/polycards/src/data/decks/_gen_japanese_l4_10.py)",
+      "Bash(python -c \"import os; os.remove\\('artifacts/polycards/src/data/decks/_gen_japanese_l4_10.py'\\); print\\('Script removed.'\\)\")",
+      "PowerShell($content = Get-Content \"d:\\\\polycards\\\\artifacts\\\\polycards\\\\src\\\\data\\\\decks\\\\portuguese.json\" -Raw | ConvertFrom-Json; Write-Host \"Total cards: $\\($content.Count\\)\"; $lastCard = $content[-1]; Write-Host \"Last ID: $\\($lastCard.id\\)\"; Write-Host \"Last level: $\\($lastCard.level\\)\"; $content | Group-Object level | Select-Object Name, Count | Sort-Object {[int]$_.Name})"
     ],
     "additionalDirectories": [
       "d:\\polycards\\artifacts\\polycards\\src\\data"
