@@ -18,7 +18,7 @@ export const LANGUAGES = [
     flag:       '🇪🇸',
     flagCode:   'es',
     ttsCode:    'es-ES',
-    available:  false,
+    available:  true,
   },
   {
     id:         'german',
@@ -27,7 +27,7 @@ export const LANGUAGES = [
     flag:       '🇩🇪',
     flagCode:   'de',
     ttsCode:    'de-DE',
-    available:  false,
+    available:  true,
   },
   {
     id:         'italian',
@@ -36,7 +36,7 @@ export const LANGUAGES = [
     flag:       '🇮🇹',
     flagCode:   'it',
     ttsCode:    'it-IT',
-    available:  false,
+    available:  true,
   },
   {
     id:         'japanese',
@@ -45,7 +45,7 @@ export const LANGUAGES = [
     flag:       '🇯🇵',
     flagCode:   'jp',
     ttsCode:    'ja-JP',
-    available:  false,
+    available:  true,
   },
   {
     id:         'portuguese',
@@ -54,6 +54,6 @@ export const LANGUAGES = [
     flag:       '🇧🇷',
     flagCode:   'br',
     ttsCode:    'pt-BR',
-    available:  false,
+    available:  true,
   },
 ];

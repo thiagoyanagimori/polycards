@@ -820,6 +820,20 @@ html, body {
   background-clip: text;
 }
 
+.card-reading {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  text-align: center;
+  min-height: 18px;
+  margin-top: -4px;
+}
+
+.card-reading:empty {
+  display: none;
+}
+
 .card-category-tag {
   background: var(--bg-raised);
   border: 1px solid var(--border);

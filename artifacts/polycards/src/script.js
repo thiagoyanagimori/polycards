@@ -68,6 +68,15 @@ function speak(text, lang) {
   utt.lang   = lang;
   utt.rate   = 0.9;
   utt.volume = 1;
+
+  if (lang === 'pt-BR') {
+    const voices  = window.speechSynthesis.getVoices();
+    const ptVoices = voices.filter(v => v.lang === 'pt-BR' || v.lang === 'pt_BR');
+    const pick    = kw => ptVoices.find(v => v.name.includes(kw));
+    const voice   = pick('Natural') || pick('Online') || pick('Google') || pick('Maria') || ptVoices[0];
+    if (voice) utt.voice = voice;
+  }
+
   window.speechSynthesis.speak(utt);
 }
 
@@ -348,6 +357,7 @@ function renderLanguageScreen() {
 }
 
 async function selectLanguage(lang) {
+  soundClick();
   const grid = el('language-grid');
   grid.style.opacity = '0.5';
   grid.style.pointerEvents = 'none';
@@ -480,12 +490,14 @@ function updateCardUI() {
     ? `${flagHTML(lang.flagCode, 'md')} ${lang.label}`
     : `${flagHTML('gb', 'md')} English`;
   el('front-word').textContent    = isTargetFirst ? card.target  : card.english;
+  el('front-reading').textContent = (card.reading && isTargetFirst)  ? card.reading : '';
   el('front-category').textContent = card.category;
 
   el('back-lang').innerHTML       = isTargetFirst
     ? `${flagHTML('gb', 'md')} English`
     : `${flagHTML(lang.flagCode, 'md')} ${lang.label}`;
   el('back-word').textContent     = isTargetFirst ? card.english : card.target;
+  el('back-reading').textContent  = (card.reading && !isTargetFirst) ? card.reading : '';
   el('back-category').textContent = card.category;
 
   const diffEl = el('back-difficulty');
@@ -801,18 +813,18 @@ async function initAuth() {
 // ==========================================
 
 // Landing
-el('btn-start').addEventListener('click', () => showScreen('screen-language'));
+el('btn-start').addEventListener('click', () => { soundClick(); showScreen('screen-language'); });
 
 // Language screen
-el('back-from-language').addEventListener('click', () => showScreen('screen-landing'));
+el('back-from-language').addEventListener('click', () => { soundClick(); showScreen('screen-landing'); });
 
 // Direction selector
-el('back-from-direction').addEventListener('click', () => showScreen('screen-language'));
+el('back-from-direction').addEventListener('click', () => { soundClick(); showScreen('screen-language'); });
 el('dir-target-en').addEventListener('click', () => { soundClick(); state.direction = 'target-en'; goToLevels(); });
 el('dir-en-target').addEventListener('click', () => { soundClick(); state.direction = 'en-target'; goToLevels(); });
 
 // Levels
-el('back-from-levels').addEventListener('click', () => showScreen('screen-direction'));
+el('back-from-levels').addEventListener('click', () => { soundClick(); showScreen('screen-direction'); });
 el('btn-reset-progress').addEventListener('click', () => {
   if (!state.language) return;
   const langLabel = state.language.label;
@@ -823,7 +835,7 @@ el('btn-reset-progress').addEventListener('click', () => {
 });
 
 // Flashcard
-el('back-from-flashcard').addEventListener('click', goToLevels);
+el('back-from-flashcard').addEventListener('click', () => { soundClick(); goToLevels(); });
 el('flashcard').addEventListener('click', () => { if (!state.flipped) flipCard(); });
 el('btn-knew').addEventListener('click',   handleKnew);
 el('btn-missed').addEventListener('click', handleMissed);
@@ -836,7 +848,7 @@ el('btn-next-level').addEventListener('click', () => {
   if (next > TOTAL_LEVELS) return;
   (!state.premium && next > FREE_LEVELS) ? openPremiumModal() : startLevel(next);
 });
-el('btn-back-levels').addEventListener('click', goToLevels);
+el('btn-back-levels').addEventListener('click', () => { soundClick(); goToLevels(); });
 
 // Auth
 document.getElementById('btn-login')?.addEventListener('click',  handleLogin);
@@ -848,7 +860,7 @@ el('modal-premium').addEventListener('click', (e) => { if (e.target === e.curren
 el('btn-upgrade').addEventListener('click', async () => {
   if (!state.user) {
     closePremiumModal();
-    showToast('Faca login com Google para assinar o Premium.');
+    showToast('Faça login com Google para assinar o Premium.');
     return;
   }
 
