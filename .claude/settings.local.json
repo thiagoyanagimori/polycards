@@ -28,7 +28,24 @@
       "Bash(python -c \"import os; os.remove\\('artifacts/polycards/src/data/decks/_add_readings.py'\\); print\\('Script removed.'\\)\")",
       "Bash(python artifacts/polycards/src/data/decks/_gen_japanese_l4_10.py)",
       "Bash(python -c \"import os; os.remove\\('artifacts/polycards/src/data/decks/_gen_japanese_l4_10.py'\\); print\\('Script removed.'\\)\")",
-      "PowerShell($content = Get-Content \"d:\\\\polycards\\\\artifacts\\\\polycards\\\\src\\\\data\\\\decks\\\\portuguese.json\" -Raw | ConvertFrom-Json; Write-Host \"Total cards: $\\($content.Count\\)\"; $lastCard = $content[-1]; Write-Host \"Last ID: $\\($lastCard.id\\)\"; Write-Host \"Last level: $\\($lastCard.level\\)\"; $content | Group-Object level | Select-Object Name, Count | Sort-Object {[int]$_.Name})"
+      "PowerShell($content = Get-Content \"d:\\\\polycards\\\\artifacts\\\\polycards\\\\src\\\\data\\\\decks\\\\portuguese.json\" -Raw | ConvertFrom-Json; Write-Host \"Total cards: $\\($content.Count\\)\"; $lastCard = $content[-1]; Write-Host \"Last ID: $\\($lastCard.id\\)\"; Write-Host \"Last level: $\\($lastCard.level\\)\"; $content | Group-Object level | Select-Object Name, Count | Sort-Object {[int]$_.Name})",
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\(p.get\\('scripts',{}\\)\\)\")",
+      "Bash(npx vite *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5199/)",
+      "Read(//d/tmp/**)",
+      "Bash(npm list *)",
+      "Bash(npm install *)",
+      "Bash(pnpm add *)",
+      "Bash(npx playwright *)",
+      "Bash(pnpm run *)",
+      "Bash(pnpm --version)",
+      "PowerShell(cd \"d:\\\\polycards\\\\artifacts\\\\polycards\"; $proc = Start-Process -FilePath \"pnpm\" -ArgumentList \"run\",\"dev\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\vite-out.txt\" -RedirectStandardError \"$env:TEMP\\\\vite-err.txt\"; Start-Sleep -Seconds 4; Get-Content \"$env:TEMP\\\\vite-out.txt\" -ErrorAction SilentlyContinue; Get-Content \"$env:TEMP\\\\vite-err.txt\" -ErrorAction SilentlyContinue; $proc.Kill\\(\\))",
+      "PowerShell(\\(Get-Command pnpm\\).Source)",
+      "PowerShell(cd \"d:\\\\polycards\\\\artifacts\\\\polycards\"; $proc = Start-Process -FilePath \"powershell\" -ArgumentList \"-Command\",\"pnpm run dev\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\vite-out.txt\" -RedirectStandardError \"$env:TEMP\\\\vite-err.txt\"; Start-Sleep -Seconds 5; Get-Content \"$env:TEMP\\\\vite-out.txt\" -ErrorAction SilentlyContinue; Get-Content \"$env:TEMP\\\\vite-err.txt\" -ErrorAction SilentlyContinue; $proc.Kill\\(\\))",
+      "PowerShell(cd \"d:\\\\polycards\\\\artifacts\\\\polycards\"; $proc = Start-Process -FilePath \"powershell\" -ArgumentList \"-Command\",\"pnpm run dev\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\vite-out2.txt\" -RedirectStandardError \"$env:TEMP\\\\vite-err2.txt\"; Start-Sleep -Seconds 5; Get-Content \"$env:TEMP\\\\vite-out2.txt\" -ErrorAction SilentlyContinue; Get-Content \"$env:TEMP\\\\vite-err2.txt\" -ErrorAction SilentlyContinue; $proc.Kill\\(\\))",
+      "PowerShell(cd \"d:\\\\polycards\\\\artifacts\\\\polycards\"; $proc = Start-Process -FilePath \"powershell\" -ArgumentList \"-Command\",\"pnpm run dev\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\vite-out3.txt\" -RedirectStandardError \"$env:TEMP\\\\vite-err3.txt\"; Start-Sleep -Seconds 6; Get-Content \"$env:TEMP\\\\vite-out3.txt\" -ErrorAction SilentlyContinue; Get-Content \"$env:TEMP\\\\vite-err3.txt\" -ErrorAction SilentlyContinue; $proc.Kill\\(\\))",
+      "PowerShell(Get-ChildItem \"d:\\\\polycards\\\\artifacts\\\\polycards\\\\src\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object FullName)",
+      "PowerShell(cd \"d:\\\\polycards\\\\artifacts\\\\polycards\"; $proc = Start-Process -FilePath \"powershell\" -ArgumentList \"-Command\",\"pnpm run dev\" -PassThru -NoNewWindow -RedirectStandardOutput \"$env:TEMP\\\\vite-cd-out.txt\" -RedirectStandardError \"$env:TEMP\\\\vite-cd-err.txt\"; Start-Sleep -Seconds 6; Get-Content \"$env:TEMP\\\\vite-cd-out.txt\" -ErrorAction SilentlyContinue; Get-Content \"$env:TEMP\\\\vite-cd-err.txt\" -ErrorAction SilentlyContinue; $proc.Kill\\(\\))"
     ],
     "additionalDirectories": [
       "d:\\polycards\\artifacts\\polycards\\src\\data"

@@ -1,6 +1,7 @@
 // PolyCards — Main Application Logic
 
 import { LANGUAGES } from './data/languages.js';
+import { openMyDecks, onAuthChanged as cdOnAuthChanged, initEventListeners as cdInitEventListeners } from './customDecksUI.js';
 
 // URL base das Cloud Functions -- preencha no .env apos o deploy.
 const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL ?? '';
@@ -57,7 +58,8 @@ let state = {
 //  TTS ENGINE (Web Speech API)
 // ==========================================
 
-let ttsEnabled = localStorage.getItem('polycards_tts') !== 'false';
+let ttsEnabled  = localStorage.getItem('polycards_tts') !== 'false';
+let showRomaji  = localStorage.getItem('polycards_show_romaji') !== 'false';
 
 const hasTTS = () => 'speechSynthesis' in window;
 
@@ -105,6 +107,19 @@ function toggleTts() {
   localStorage.setItem('polycards_tts', String(ttsEnabled));
   if (!ttsEnabled) window.speechSynthesis?.cancel();
   updateTtsBtn();
+}
+
+function applyRomaji() {
+  el('screen-flashcard').classList.toggle('romaji-hidden', !showRomaji);
+  const btn = el('btn-romaji-toggle');
+  btn.textContent = showRomaji ? 'Romaji ON' : 'Romaji OFF';
+  btn.classList.toggle('off', !showRomaji);
+}
+
+function toggleRomaji() {
+  showRomaji = !showRomaji;
+  localStorage.setItem('polycards_show_romaji', String(showRomaji));
+  applyRomaji();
 }
 
 function updateTtsBtn() {
@@ -456,6 +471,13 @@ function startLevel(level) {
 
   el('flashcard-level-badge').textContent = `Level ${level}`;
   el('count-total').textContent           = state.cards.length;
+
+  const isJapanese  = state.language?.id === 'japanese';
+  const romajiBtn   = el('btn-romaji-toggle');
+  romajiBtn.style.display = isJapanese ? '' : 'none';
+  if (isJapanese) applyRomaji();
+  else el('screen-flashcard').classList.remove('romaji-hidden');
+
   updateCardUI();
   resetFlip();
   updateActionRow(false);
@@ -805,6 +827,7 @@ async function initAuth() {
     }
 
     updateAuthUI();
+    cdOnAuthChanged(user);
   });
 }
 
@@ -813,7 +836,8 @@ async function initAuth() {
 // ==========================================
 
 // Landing
-el('btn-start').addEventListener('click', () => { soundClick(); showScreen('screen-language'); });
+el('btn-start').addEventListener('click',    () => { soundClick(); showScreen('screen-language'); });
+el('btn-my-decks').addEventListener('click', () => { soundClick(); openMyDecks(); });
 
 // Language screen
 el('back-from-language').addEventListener('click', () => { soundClick(); showScreen('screen-landing'); });
@@ -840,6 +864,7 @@ el('flashcard').addEventListener('click', () => { if (!state.flipped) flipCard()
 el('btn-knew').addEventListener('click',   handleKnew);
 el('btn-missed').addEventListener('click', handleMissed);
 el('btn-next').addEventListener('click',   handleNext);
+el('btn-romaji-toggle').addEventListener('click', () => { soundClick(); toggleRomaji(); });
 
 // End screen
 el('btn-retry').addEventListener('click',      () => startLevel(state.currentLevel));
@@ -921,6 +946,7 @@ migrateOldProgress();
 updateMuteBtn();
 updateTtsBtn();
 renderLanguageScreen();
+cdInitEventListeners();
 showScreen('screen-landing');
 
 initAuth();
